@@ -1,8 +1,23 @@
-const searchInputElement = document.querySelector('#search');
-const resultsElement = document.querySelector('.results');
+const searchInputElement = document.getElementById('#search');
+const resultsElement = document.getElementById('#results');
 const randomBtn = document.querySelector('.btn-random');
+const prevBtn = document.querySelector('.btn-prev');
+const nextBtn = document.querySelector('.btn-next');
+const counter = document.getElementById('counter');
 
+let offset = 0;
+let canContinue = false;
 searchInputElement.focus();
+
+function reset() {
+  offset = 0;
+  canContinue = false;
+  prevBtn.setAttribute('disabled', '');
+  nextBtn.setAttribute('disabled', '');
+  resultsElement.textContent = '';
+  counter.textContent = '';
+  searchInputElement.focus();
+}
 
 function generateURL(random) {
   const searchQuery = searchInputElement.value.trim();
@@ -10,8 +25,7 @@ function generateURL(random) {
   let url = 'https://en.wikipedia.org/w/api.php?';
 
   if (!searchQuery && !random) {
-    resultsElement.textContent = '';
-    searchInputElement.focus();
+    reset();
     return;
   }
 
@@ -20,7 +34,9 @@ function generateURL(random) {
       action: 'query',
       list: 'search',
       origin: '*',
-      srlimit: '5',
+      srlimit: 10,
+      sroffset: offset,
+      continue: '-||',
       format: 'json',
       srsearch: searchQuery
       // srsearch: `intitle:${searchQuery}` // Title should include the search term
@@ -30,7 +46,7 @@ function generateURL(random) {
     params = {
       action: 'query',
       generator: 'random',
-      grnlimit: 5,
+      grnlimit: 10,
       grnnamespace: 0,
       origin: '*',
       prop: 'extracts',
@@ -87,6 +103,7 @@ function sendHttpRequest(method, url) {
 
 function displayResults(wikiResults) {
   if (wikiResults.query.searchinfo.totalhits <= 0) {
+    reset();
     const resultElement = document.createElement('li');
     resultElement.innerHTML = `
       <p>No results found. Please try different keywords.</p>
@@ -116,18 +133,6 @@ function displayRandomResults(wikiResults) {
       `;
     resultsElement.append(resultElement);
   });
-
-  // for (resultKey in wikiResults.query.pages) {
-  //   const result = wikiResults.query.pages[resultKey];
-
-  //   const resultElement = document.createElement('li');
-  //   resultElement.innerHTML = `
-  //       <h2>${result.title}</h2>
-  //       <h3><a href="https://en.wikipedia.org/?curid=${result.pageid}" title="${result.title}" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/?curid=${result.pageid}</a></h3>
-  //       <p>${result.extract}...</p>
-  //     `;
-  //   resultsElement.append(resultElement);
-  // }
 }
 
 async function fetchResults(random) {
@@ -140,8 +145,23 @@ async function fetchResults(random) {
 
     const wikiResults = await sendHttpRequest('GET', url);
     resultsElement.textContent = '';
+    counter.textContent = '';
 
     if (!random) {
+      if (wikiResults.continue?.sroffset) {
+        canContinue = true;
+        nextBtn.removeAttribute('disabled', '');
+      } else {
+        nextBtn.setAttribute('disabled', '');
+      }
+
+      const totalHits = wikiResults.query.searchinfo.totalhits;
+      counter.textContent = `
+        ${offset + 1} to ${
+        offset + 10 > totalHits ? totalHits : offset + 10
+      } of ${totalHits} records
+      `;
+
       displayResults(wikiResults);
     } else {
       displayRandomResults(wikiResults);
@@ -152,9 +172,29 @@ async function fetchResults(random) {
 }
 
 searchInputElement.addEventListener('input', () => {
+  reset();
   fetchResults(false);
 });
 
+nextBtn.addEventListener('click', () => {
+  if (canContinue) {
+    offset += 10;
+    prevBtn.removeAttribute('disabled', '');
+    fetchResults(false);
+  }
+});
+
+prevBtn.addEventListener('click', () => {
+  if (offset > 0) {
+    offset -= 10;
+    if (offset <= 0) {
+      prevBtn.setAttribute('disabled', '');
+    }
+    fetchResults(false);
+  }
+});
+
 randomBtn.addEventListener('click', () => {
+  reset();
   fetchResults(true);
 });
