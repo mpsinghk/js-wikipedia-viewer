@@ -16,11 +16,33 @@
     <script src="assets/wiki-viewer.js" defer></script>
   </head>
   <body>
-    <input type="text" id="search" placeholder="Search..." />
-    <button type="button" class="btn-random">View Random</button>
-    <button type="button" class="btn-prev" disabled>Prev</button>
-    <button type="button" class="btn-next" disabled>Next</button>
-    <p id="counter"></p>
-    <ul id="results"></ul>
+    <div class="container">
+      <header>
+        <h1>Wikipedia Viewer</h1>
+        <p>
+          Search articles based on your query or find some random ones by
+          clicking on the button.
+        </p>
+      </header>
+
+      <section class="controls">
+        <input type="text" id="search" placeholder="Search for topics..." />
+        <button type="button" class="btn-random">
+          Random Articles
+        </button>
+      </section>
+
+      <section class="pagination">
+        <div class="pagination-left">
+          <div id="counter"></div>
+        </div>
+        <div class="pagination-right">
+          <button type="button" class="btn btn-prev" disabled>Prev</button>
+          <button type="button" class="btn btn-next" disabled>Next</button>
+        </div>
+      </section>
+
+      <ul id="results" class="results"></ul>
+    </div>
   </body>
 </html>

@@ -1,17 +1,21 @@
-const searchInputElement = document.getElementById('#search');
-const resultsElement = document.getElementById('#results');
+const searchInputElement = document.getElementById('search');
+const resultsElement = document.getElementById('results');
 const randomBtn = document.querySelector('.btn-random');
 const prevBtn = document.querySelector('.btn-prev');
 const nextBtn = document.querySelector('.btn-next');
+const pagination = document.querySelector('.pagination');
 const counter = document.getElementById('counter');
 
+let timer;
 let offset = 0;
 let canContinue = false;
+const perPage = 12;
 searchInputElement.focus();
 
 function reset() {
   offset = 0;
   canContinue = false;
+  pagination.style.display = 'none';
   prevBtn.setAttribute('disabled', '');
   nextBtn.setAttribute('disabled', '');
   resultsElement.textContent = '';
@@ -34,7 +38,7 @@ function generateURL(random) {
       action: 'query',
       list: 'search',
       origin: '*',
-      srlimit: 10,
+      srlimit: perPage,
       sroffset: offset,
       continue: '-||',
       format: 'json',
@@ -46,7 +50,7 @@ function generateURL(random) {
     params = {
       action: 'query',
       generator: 'random',
-      grnlimit: 10,
+      grnlimit: perPage,
       grnnamespace: 0,
       origin: '*',
       prop: 'extracts',
@@ -112,11 +116,13 @@ function displayResults(wikiResults) {
     return;
   }
 
+  pagination.style.display = 'flex';
+
   for (result of wikiResults.query.search) {
     const resultElement = document.createElement('li');
     resultElement.innerHTML = `
+        <a href="https://en.wikipedia.org/?curid=${result.pageid}" title="Read more..." target="_blank" rel="noopener noreferrer"></a>
         <h2>${result.title}</h2>
-        <h3><a href="https://en.wikipedia.org/?curid=${result.pageid}" title="${result.title}" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/?curid=${result.pageid}</a></h3>
         <p>${result.snippet}...</p>
       `;
     resultsElement.append(resultElement);
@@ -127,8 +133,8 @@ function displayRandomResults(wikiResults) {
   Object.values(wikiResults.query.pages).forEach(result => {
     const resultElement = document.createElement('li');
     resultElement.innerHTML = `
+        <a href="https://en.wikipedia.org/?curid=${result.pageid}" title="Read more..." target="_blank" rel="noopener noreferrer"></a>
         <h2>${result.title}</h2>
-        <h3><a href="https://en.wikipedia.org/?curid=${result.pageid}" title="${result.title}" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/?curid=${result.pageid}</a></h3>
         <p>${result.extract}...</p>
       `;
     resultsElement.append(resultElement);
@@ -158,7 +164,7 @@ async function fetchResults(random) {
       const totalHits = wikiResults.query.searchinfo.totalhits;
       counter.textContent = `
         ${offset + 1} to ${
-        offset + 10 > totalHits ? totalHits : offset + 10
+        offset + perPage > totalHits ? totalHits : offset + perPage
       } of ${totalHits} records
       `;
 
@@ -172,13 +178,17 @@ async function fetchResults(random) {
 }
 
 searchInputElement.addEventListener('input', () => {
-  reset();
-  fetchResults(false);
+  clearTimeout(timer);
+
+  timer = setTimeout(() => {
+    reset();
+    fetchResults(false);
+  }, 1000);
 });
 
 nextBtn.addEventListener('click', () => {
   if (canContinue) {
-    offset += 10;
+    offset += perPage;
     prevBtn.removeAttribute('disabled', '');
     fetchResults(false);
   }
@@ -186,7 +196,7 @@ nextBtn.addEventListener('click', () => {
 
 prevBtn.addEventListener('click', () => {
   if (offset > 0) {
-    offset -= 10;
+    offset -= perPage;
     if (offset <= 0) {
       prevBtn.setAttribute('disabled', '');
     }
