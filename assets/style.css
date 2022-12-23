@@ -89,8 +89,8 @@ input {
 .btn-random {
   padding: 2rem;
   margin: 1rem 0;
-  background-color: #ff5a5f;
-  border: 1px solid #e2666b;
+  background-color: rgb(34, 37, 46);
+  border: 1px solid rgb(34, 37, 46);
   color: #fff;
   cursor: pointer;
 }
@@ -98,7 +98,7 @@ input {
 input:focus-visible,
 .btn-random:focus-visible {
   outline: none;
-  border: 1px solid #e2666b;
+  border: 1px solid rgb(34, 37, 46);
 }
 
 @media (min-width: 768px) {
@@ -195,16 +195,15 @@ input:focus-visible,
   font-size: 1.4rem;
   padding: 0.75rem 2rem;
   margin: 1rem 0;
-  background-color: #ff5a5f;
-  border: 1px solid #e2666b;
+  background-color: rgb(34, 37, 46);
+  border: none;
   border-radius: 5px;
   color: #fff;
   cursor: pointer;
 }
 
 .pagination .btn:disabled {
-  background-color: #fa9c9f;
-  border: 1px solid #fa9c9f;
+  background-color: rgba(34, 37, 46, 0.3);
 }
 
 @media (min-width: 500px) {
